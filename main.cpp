@@ -9,7 +9,7 @@ int main () {
     int index = 0;
 
     list_ctor (&myList); 
-    printf ("henlo, it's menu for queue\n");
+    printf ("henlo, it's menu for list\n");
     printf ("1 num index - push before\n");
     printf ("2 num index - push after\n");
     printf ("3 - list search\n");
@@ -67,11 +67,11 @@ int main () {
                 break;
 
             case 5:
-                list_dump (myList);
+                list_dump (&myList);
                 break;
 
             case 6:
-                printf ("henlo, it's menu for queue\n");
+                printf ("henlo, it's menu for list\n");
                 printf ("1 num index - push before\n");
                 printf ("2 num index - push after\n");
                 printf ("3 - list search\n");
@@ -91,7 +91,7 @@ int main () {
                 break;
         }
 
-        if (list_dump(myList) != 0) {
+        if (list_dump(&myList) != 0) {
             list_dtor (&myList);
             break;
         }
