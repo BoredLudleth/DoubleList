@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "graphviz.hpp"
+
 #define DBG printf("FILE:%s FUNC:%s LINE:%d\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
 typedef int type;
@@ -40,9 +42,9 @@ void list_ctor (struct spis* myList);
 
 void list_dtor (struct spis* myList);
 
-void insert_first (struct spis* myList, type value);
-
 struct elem* list_log_in_phys (struct spis* myList, type index);
+
+int list_phys_in_log (struct spis* myList, struct elem* Element);
 
 void list_insert_before (struct spis* myList, type value, int index);
 
@@ -52,7 +54,9 @@ int list_search (struct spis* myList, type value);
 
 int list_delete (struct spis* myList, type index);
 
-int list_dump (const struct spis*  myList);
+void list_dump (const struct spis*  myList);
+
+int list_сheck (struct spis* myList);
 
 int scanf_check (int x);
 

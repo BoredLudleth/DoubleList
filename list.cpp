@@ -1,9 +1,10 @@
 #include "list.hpp"
+#include "graphviz.hpp"
 
 void list_ctor (struct spis* myList) {
     myList->list = (struct elem*) calloc (LIST_LENGTH,  sizeof (struct elem));
-    myList->head = -1;
-    myList->tail = -1;
+    myList->head = 1;
+    myList->tail = 1;
     myList->free = -1;
     myList->length = 0;
 
@@ -34,7 +35,17 @@ void list_dtor (struct spis* myList) {
     myList->list = nullptr;
 }
 
-void insert_first (struct spis* myList, type value) {
+void list_insert_before (struct spis* myList, type value, int index) {
+    if (myList->length < index || index < 0 || myList->length > LIST_LENGTH) {
+        printf ("We can't add your value\n");
+        myList->errors = INSERT_ERROR;
+
+        return;
+    }
+    
+    list_сheck (myList);
+
+    if (myList->length == 0) {
         int insertBlock = -myList->free;
 
         myList->free = myList->list[-myList->free].next;
@@ -47,21 +58,8 @@ void insert_first (struct spis* myList, type value) {
         myList->length++;
 
         return;
-}
-
-void list_insert_before (struct spis* myList, type value, int index) {
-    if (myList->length == 0) {
-        insert_first (myList, value);
-
-        return;
     }
 
-    if (myList->length < index || index < 0 || myList->length > LIST_LENGTH) {
-        printf ("We can't add your value\n");
-        myList->errors = INSERT_ERROR;
-        return;
-    }
-    
     int insertBlock = -myList->free;
 
     myList->free = myList->list[-myList->free].next;
@@ -79,18 +77,37 @@ void list_insert_before (struct spis* myList, type value, int index) {
     myList->list[insertBlock].data = value;
 
     myList->length++;
+
+    if (index == 0) {
+        myList->head = insertBlock;
+    }
+
+    myList->length++;
+
+    list_сheck (myList);
 }
 
 void list_insert_after (struct spis* myList, type value, int index) {
-    if (myList->length == 0) {
-        insert_first (myList, value);
-
-        return;
-    }
-
     if (myList->length < index || index < 0 || myList->length > LIST_LENGTH) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
+        return;
+    }
+
+    list_сheck (myList);
+
+    if (myList->length == 0) {
+        int insertBlock = -myList->free;
+
+        myList->free = myList->list[-myList->free].next;
+        myList->list[insertBlock].data = value;
+        myList->list[insertBlock].prev = 0;
+        myList->list[insertBlock].next = 0;
+
+        myList->head = insertBlock;
+        myList->tail = insertBlock;
+        myList->length++;
+
         return;
     }
 
@@ -113,6 +130,8 @@ void list_insert_after (struct spis* myList, type value, int index) {
     myList->list[insertBlock].data = value;
 
     myList->length++;
+
+    list_сheck (myList);
 }//insert before next or tail - don't fixes, need physical in logical (or adress)
 
 int list_search (struct spis* myList, type value) {
@@ -130,12 +149,18 @@ int list_search (struct spis* myList, type value) {
 //logical adress<->physical???
 
 struct elem* list_log_in_phys (struct spis* myList, type index) {
+    if (index == 0) {
+        return 0;
+    }
     return &(myList->list[index]);
 }
 
 int list_phys_in_log (struct spis* myList, struct elem* Element) {
+    DBG
     for (int i = 0; i < myList->length; i++) {
-        if (&(myList->list[i])) {
+        DBG
+        if (&(myList->list[i]) == Element) {
+            printf ("%d", i);
             return i;
         }
     }
@@ -143,15 +168,17 @@ int list_phys_in_log (struct spis* myList, struct elem* Element) {
     printf ("No such element in list\n");
 
     return -1;
-}
+}//don't work
 
 
 int  list_delete (struct spis* myList, type index) {
-    if (myList->length == 0) {
+    if (myList->list[index].data == POISON) {
         printf("You can't delete unexisting thing(\n");
         myList->errors = DELETE_ERROR;
         return 0;
     }
+
+    list_сheck (myList);
 
     int delValue = myList->list[index].data;
 
@@ -175,11 +202,14 @@ int  list_delete (struct spis* myList, type index) {
     (myList->length)--;
 
     printf ("DELETED VALUE: %d\n", delValue);
+
+    list_сheck (myList);
+
     return 1;
 
 }
 
-int list_dump (const struct spis*  myList) {
+void list_dump (const struct spis*  myList) {
     printf ("==========LIST_DUMP==========\n");
 
     printf ("ERRORS: %d\n", myList->errors);
@@ -223,11 +253,19 @@ int list_dump (const struct spis*  myList) {
     }
 
     printf ("end\n=============================\n");
+}
 
-    return myList->errors;
-}//make check
-//graphwiz
-//linearization - sort
+int list_сheck (struct spis* myList) {
+    if (myList->errors != 0) {
+        list_dump (myList);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+//graphwiz - other file
+
+//linearization - sort - don't do  it now
 int scanf_check (int x) {
     if (x == 0) {
         printf ("Undefined command\n");

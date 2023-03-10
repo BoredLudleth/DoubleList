@@ -15,8 +15,11 @@ main.o: main.cpp
 list.o: list.cpp
 	g++ $(CFLAGS) list.cpp -o list.o
 
-run_list: main.o list.o
-	g++ main.o list.o -o run_list
+graphvizlib.o: graphvizlib.cpp
+	g++ $(CFLAGS) graphvizlib.cpp -o graphvizlib.o
+
+run_list: main.o list.o graphvizlib.o
+	g++ main.o list.o graphvizlib.o -o run_list
 	
 clean:
 	rm *.o *.exe
