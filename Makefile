@@ -15,6 +15,9 @@ list.o: list.cpp
 
 run_list: main.o list.o
 	g++ main.o list.o -o run_list
+
+run_graph:
+	dot output.txt -Tpng -o output.png
 	
 clean:
 	rm *.o *.exe

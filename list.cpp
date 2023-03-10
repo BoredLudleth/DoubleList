@@ -1,6 +1,9 @@
 #include "list.hpp"
 
 void list_ctor (struct spis* myList) {
+    FILE* output = fopen ("output.txt","w+");
+    myList->output = output;
+
     myList->list = (struct elem*) calloc (LIST_LENGTH + 1,  sizeof (struct elem));
 
     myList->head = 1;
@@ -8,8 +11,8 @@ void list_ctor (struct spis* myList) {
     myList->free = -1;
     myList->length = 0;
 
-    myList->list[0].next = myList->head;
-    myList->list[0].prev = myList->tail;
+    myList->list[0].next = myList->tail;
+    myList->list[0].prev = myList->head;
 
     for (int i = 1; i < LIST_LENGTH - 1; i++) {
         myList->list[i].next = - i - 1;
@@ -38,6 +41,8 @@ void list_dtor (struct spis* myList) {
 
     free (myList->list);
     myList->list = nullptr;
+
+    fclose (myList->output);
 }
 
 void list_insert_before (struct spis* myList, type value, int index) {
@@ -79,6 +84,7 @@ void list_insert_before (struct spis* myList, type value, int index) {
         myList->list[myList->list[insertBlock].prev].next = insertBlock;
     } else {
         myList->head = insertBlock;
+        myList->list[0].prev = myList->head;
     }
 
     myList->length++;
@@ -122,9 +128,8 @@ void list_insert_after (struct spis* myList, type value, int index) {
         myList->list[myList->list[insertBlock].next].prev = insertBlock;
     } else {
         myList->tail = insertBlock;
+        myList->list[0].next = myList->tail;
     }
-
-    myList->list[myList->list[insertBlock].next].prev = index;
 
     myList->list[insertBlock].data = value;
 
@@ -132,7 +137,7 @@ void list_insert_after (struct spis* myList, type value, int index) {
 
     list_сheck (myList);
 }
-//insert before next or tail - don't fixes, need physical in logical (or adress)
+//insert before next or tail - don't fixes, something strange and unreadable in code
 
 int list_search (struct spis* myList, type value) {
     int current = myList->head;
@@ -196,12 +201,14 @@ int  list_delete (struct spis* myList, type index) {
         myList->list[myList->list[index].next].prev = myList->list[index].prev;
     } else {
         myList->tail = myList->list[index].prev;
+        myList->list[0].next = myList->tail;
     }
 
     if (index != myList->head) {
         myList->list[myList->list[index].prev].next = myList->list[index].next;
     } else {
         myList->head = myList->list[index].next;
+        myList->list[0].prev = myList->head;
     }
 
     myList->list[index].next = myList->free;
@@ -244,7 +251,7 @@ void list_dump (const struct spis*  myList) {
 
     printf ("    № data  prev next\n");
 
-    for (int i = 0; i < LIST_LENGTH; i++) {
+    for (int i = 0; i < LIST_LENGTH + 1; i++) {
         printf ("%5d ", i);
         printf (TYPE_SPECIFICATOR_FIVE, myList->list[i].data);
         printf ("%4d %4d\n", myList->list[i].prev, myList->list[i].next);
@@ -272,14 +279,16 @@ int list_сheck (struct spis* myList) {
     }
 }
 
-void mdDo (FILE* output, struct spis* myList) {
-    fprintf (output, "digraph D \n{\n");
+void mdDo (struct spis* myList) {
+    fprintf (myList->output, "digraph D \n{\n");
+    fprintf (myList->output, "node [shape=record fontname=Arial];\n");
+    fprintf (myList->output, "rankdir = HR;\n");
 
     for (int i = 0; i < LIST_LENGTH; i++) {
         if (myList->list[i].next < 0 || myList->list[i].data == POISON) {
             continue;
         }
-        fprintf (output, "node%d [label = \"value = %d \\n prev = %p \\n addr = %p \\n next %p\"];\n",  i, myList->list[i].data, 
+        fprintf (myList->output, "node%d [label = \"<f0>value = %d |{prev = %p|<f1> addr = %p|<f2> next %p}\", style = filled, fillcolor = \"#d0ffff\"];\n",  i, myList->list[i].data, 
                  list_log_in_phys(myList, myList->list[i].prev), 
                  list_log_in_phys(myList, i),
                  list_log_in_phys(myList, myList->list[i].next));
@@ -289,13 +298,53 @@ void mdDo (FILE* output, struct spis* myList) {
         if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
             continue;
         }
-        fprintf (output, "node%d -> node%d;\n", i, myList->list[i].next);
+        fprintf (myList->output, "node%d -> node%d [dir=both, color = \"#00D000\"];\n", i, myList->list[i].next);
     }
 
-    fprintf (output, "}\n");
+    fprintf (myList->output, "}\n");
 }
 
-//linearization - sort - don't do  it now
+void list_linearization (struct spis* myList) {
+    if (myList->length == 0) {
+        return;
+    }
+
+    type* myLittleArrayOfValues = (type*) calloc (myList->length,  sizeof (type));
+
+    for (int current = myList->head, i = 0; current != 0; current = myList->list[current].next, i++)  {
+        myLittleArrayOfValues[i] = myList->list[current].data;
+    }
+
+    for (int i = 1, j = 0; j < LIST_LENGTH; i++, j++) {
+        if (j< myList->length) {
+            myList->list[i].prev = i - 1;
+            myList->list[i].data = myLittleArrayOfValues[j];
+            if (i == myList->length) {
+                myList->list[i].next = 0;
+            } else {
+                myList->list[i].next = i + 1;
+            }
+        } else {
+            myList->list[i].prev = 0;
+            myList->list[i].data = POISON;
+            if (i == LIST_LENGTH) {
+                myList->list[i].next = 0;
+            } else {
+                myList->list[i].next = - i - 1;
+            }
+        }
+    }
+
+    myList->head = 1;
+    myList->tail = myList->length;
+    myList->free = - myList->length - 1;
+
+    myList->list[0].next = myList->tail;
+    myList->list[0].prev = myList->head;
+
+    free (myLittleArrayOfValues);
+}
+
 int scanf_check (int x) {
     if (x == 0) {
         printf ("Undefined command\n");

@@ -1,6 +1,6 @@
 #include "list.hpp"
 
-int main () {//check  insert/deleting element there is a problem with addresation + maybe renew graphviz 
+int main () {
     struct spis myList = {};
 
     int command = -1;
@@ -8,8 +8,6 @@ int main () {//check  insert/deleting element there is a problem with addresatio
     type search_value = 0;
     int index = 0;
     struct elem* adress = nullptr;
-
-    FILE* output = fopen ("output.txt","w+");
 
     list_ctor (&myList); 
                 printf ("henlo, it's menu for list\n");
@@ -23,6 +21,7 @@ int main () {//check  insert/deleting element there is a problem with addresatio
                 printf ("8 adress - physical adress to logical\n");
                 printf ("9 - quit\n");
                 printf ("10 - graphviz\n");
+                printf ("11 - linearization\n");
 
     while (!scanf_check(scanf("%d", &command)));
 
@@ -88,6 +87,7 @@ int main () {//check  insert/deleting element there is a problem with addresatio
                 printf ("8 adress - physical adress to logical\n");
                 printf ("9 - quit\n");
                 printf ("10 - graphviz\n");
+                printf ("11 - linearization\n");
                 break;
 
             case 7:
@@ -111,7 +111,11 @@ int main () {//check  insert/deleting element there is a problem with addresatio
                 break;
 
             case 10:
-                mdDo (output, &myList);
+                mdDo (&myList);
+                break;
+                
+            case 11:
+                list_linearization (&myList);
                 break;
 
             default:
@@ -126,8 +130,6 @@ int main () {//check  insert/deleting element there is a problem with addresatio
             break;
         }
     }
-
-    fclose (output);
 
     return 0;
 }

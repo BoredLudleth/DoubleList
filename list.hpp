@@ -21,6 +21,8 @@ struct elem {
 struct spis {
     struct elem* list;
 
+    FILE* output;
+
     int head;
     int length;
     int tail;
@@ -56,7 +58,9 @@ void list_dump (const struct spis*  myList);
 
 int list_сheck (struct spis* myList);
 
-void mdDo (FILE* output, struct spis* myList);
+void mdDo (struct spis* myList);
+
+void list_linearization (struct spis* myList);
 
 int scanf_check (int x);
 
