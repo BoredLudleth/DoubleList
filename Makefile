@@ -5,8 +5,6 @@ CFLAGS = -g -c -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wflo
 		 -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing \
 		 -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE
 
-# EXE_FLAG_VALGRIND = valgrind -s --leak-check=yes --show-leak-kinds=all --track-origins=yes --log-file="valgrind_log.txt" 
-
 all: run_list
 
 main.o: main.cpp
@@ -15,11 +13,8 @@ main.o: main.cpp
 list.o: list.cpp
 	g++ $(CFLAGS) list.cpp -o list.o
 
-graphvizlib.o: graphvizlib.cpp
-	g++ $(CFLAGS) graphvizlib.cpp -o graphvizlib.o
-
-run_list: main.o list.o graphvizlib.o
-	g++ main.o list.o graphvizlib.o -o run_list
+run_list: main.o list.o
+	g++ main.o list.o -o run_list
 	
 clean:
 	rm *.o *.exe

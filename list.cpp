@@ -1,14 +1,17 @@
 #include "list.hpp"
-#include "graphviz.hpp"
 
 void list_ctor (struct spis* myList) {
-    myList->list = (struct elem*) calloc (LIST_LENGTH,  sizeof (struct elem));
+    myList->list = (struct elem*) calloc (LIST_LENGTH + 1,  sizeof (struct elem));
+
     myList->head = 1;
     myList->tail = 1;
     myList->free = -1;
     myList->length = 0;
 
-    for (int i = 0; i < LIST_LENGTH - 1; i++) {
+    myList->list[0].next = myList->head;
+    myList->list[0].prev = myList->tail;
+
+    for (int i = 1; i < LIST_LENGTH - 1; i++) {
         myList->list[i].next = - i - 1;
         myList->list[i].prev = 0;
     }
@@ -18,6 +21,8 @@ void list_ctor (struct spis* myList) {
     }
     
     myList->list[LIST_LENGTH - 1].next = 0;
+
+    list_сheck (myList);
 }
 
 void list_dtor (struct spis* myList) {
@@ -36,7 +41,7 @@ void list_dtor (struct spis* myList) {
 }
 
 void list_insert_before (struct spis* myList, type value, int index) {
-    if (myList->length < index || index < 0 || myList->length > LIST_LENGTH) {
+    if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
 
@@ -68,17 +73,11 @@ void list_insert_before (struct spis* myList, type value, int index) {
     myList->list[insertBlock].next = index;
     myList->list[index].prev = insertBlock;
 
-    if (myList->list[insertBlock].prev != 0) {
-        myList->list[myList->list[insertBlock].prev].next = index;
-    } else {
-        myList->head = insertBlock;
-    }
-
     myList->list[insertBlock].data = value;
 
-    myList->length++;
-
-    if (index == 0) {
+    if (myList->list[insertBlock].prev != 0) {
+        myList->list[myList->list[insertBlock].prev].next = insertBlock;
+    } else {
         myList->head = insertBlock;
     }
 
@@ -88,7 +87,13 @@ void list_insert_before (struct spis* myList, type value, int index) {
 }
 
 void list_insert_after (struct spis* myList, type value, int index) {
-    if (myList->length < index || index < 0 || myList->length > LIST_LENGTH) {
+
+}
+
+
+
+void list_insert_after (struct spis* myList, type value, int index) {
+    if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
         return;
@@ -120,7 +125,7 @@ void list_insert_after (struct spis* myList, type value, int index) {
     myList->list[index].next = insertBlock;
     
     if (myList->list[insertBlock].next != 0) {
-        myList->list[myList->list[insertBlock].next].prev = index;
+        myList->list[myList->list[insertBlock].next].prev = insertBlock;
     } else {
         myList->tail = insertBlock;
     }
@@ -132,21 +137,22 @@ void list_insert_after (struct spis* myList, type value, int index) {
     myList->length++;
 
     list_сheck (myList);
-}//insert before next or tail - don't fixes, need physical in logical (or adress)
+}
+//insert before next or tail - don't fixes, need physical in logical (or adress)
 
 int list_search (struct spis* myList, type value) {
     int current = myList->head;
-
-    while (current > 0 && myList->length != 0) {
-        if (myList->list[current].data == value) {
-            return current;
+    if (myList->length != 0) {
+        while (current > 0) {
+            if (myList->list[current].data == value) {
+                return current;
+            }
+            current = myList->list[current].next;
         }
-        current = myList->list[current].next;
     }
 
     return -1;
 }
-//logical adress<->physical???
 
 struct elem* list_log_in_phys (struct spis* myList, type index) {
     if (index == 0) {
@@ -156,20 +162,28 @@ struct elem* list_log_in_phys (struct spis* myList, type index) {
 }
 
 int list_phys_in_log (struct spis* myList, struct elem* Element) {
-    DBG
-    for (int i = 0; i < myList->length; i++) {
-        DBG
-        if (&(myList->list[i]) == Element) {
-            printf ("%d", i);
-            return i;
+    int current = myList->head;
+
+    if (myList->length == 0) {
+        printf ("No such element in list\n");
+
+        return -1;
+    }
+
+    while (current != 0) {
+        if (&(myList->list[current]) == Element) {
+            return current;
+
+            break;
+        } else {
+            current = myList->list[current].next;
         }
     }
 
     printf ("No such element in list\n");
 
     return -1;
-}//don't work
-
+}
 
 int  list_delete (struct spis* myList, type index) {
     if (myList->list[index].data == POISON) {
@@ -263,7 +277,29 @@ int list_сheck (struct spis* myList) {
         return 0;
     }
 }
-//graphwiz - other file
+
+void mdDo (FILE* output, struct spis* myList) {
+    fprintf (output, "digraph D \n{\n");
+
+    for (int i = 0; i < LIST_LENGTH; i++) {
+        if (myList->list[i].next < 0 || myList->list[i].data == POISON) {
+            continue;
+        }
+        fprintf (output, "node%d [label = \"value = %d \\n prev = %p \\n addr = %p \\n next %p\"];\n",  i, myList->list[i].data, 
+                 list_log_in_phys(myList, myList->list[i].prev), 
+                 list_log_in_phys(myList, i),
+                 list_log_in_phys(myList, myList->list[i].next));
+    }
+
+    for (int i = 0; i < LIST_LENGTH; i++) {
+        if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
+            continue;
+        }
+        fprintf (output, "node%d -> node%d;\n", i, myList->list[i].next);
+    }
+
+    fprintf (output, "}\n");
+}
 
 //linearization - sort - don't do  it now
 int scanf_check (int x) {

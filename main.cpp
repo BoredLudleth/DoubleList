@@ -78,7 +78,7 @@ int main () {//check  insert/deleting element there is a problem with addresatio
 
             case 6:
                 printf ("henlo, it's menu for list\n");
-                printf ("1 num index - push before\n");
+                printf ("1 num index - push before, enter first you must use 2 num 0\n");
                 printf ("2 num index - push after\n");
                 printf ("3 - list search\n");
                 printf ("4 - list delete\n");
@@ -99,7 +99,7 @@ int main () {//check  insert/deleting element there is a problem with addresatio
                 break;
 
             case 8:
-                if (!scanf_check (scanf ("%p", adress))) {
+                if (!scanf_check (scanf ("%p", &adress))) {
                     break;
                 }
                 printf ("%d\n", list_phys_in_log (&myList, adress));
@@ -126,6 +126,8 @@ int main () {//check  insert/deleting element there is a problem with addresatio
             break;
         }
     }
+
+    fclose (output);
 
     return 0;
 }

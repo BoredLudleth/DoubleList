@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "graphviz.hpp"
-
 #define DBG printf("FILE:%s FUNC:%s LINE:%d\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
 typedef int type;
@@ -57,6 +55,8 @@ int list_delete (struct spis* myList, type index);
 void list_dump (const struct spis*  myList);
 
 int list_сheck (struct spis* myList);
+
+void mdDo (FILE* output, struct spis* myList);
 
 int scanf_check (int x);
 
