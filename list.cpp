@@ -87,12 +87,6 @@ void list_insert_before (struct spis* myList, type value, int index) {
 }
 
 void list_insert_after (struct spis* myList, type value, int index) {
-
-}
-
-
-
-void list_insert_after (struct spis* myList, type value, int index) {
     if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
