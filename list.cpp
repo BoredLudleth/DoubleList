@@ -311,7 +311,7 @@ char* inttoa(int n, char* s) {
         n = -n;
     i = 0;
     do {
-        s[i++] = n % 10 + '0';
+        s[i++] = (char) (n % 10) + '0';
     } while ((n /= 10) > 0);    
     if (sign < 0)
         s[i++] = '-';
@@ -325,7 +325,7 @@ void reverse(char* s) {
     int i = 0, j = 0;
     char c = ' ';
 
-    for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
+    for (i = 0, j = (int) strlen(s)-1; i<j; i++, j--) {
         c = s[i];
         s[i] = s[j];
         s[j] = c;
