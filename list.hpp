@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DBG printf("FILE:%s FUNC:%s LINE:%d\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
@@ -13,9 +14,9 @@ typedef int type;
 #define POISON 0xDEAD
 
 struct elem {
-    int prev;
-    type data;
-    int next;
+    int prev  = 0;
+    type data = POISON;
+    int next  = 0;
 };
 
 struct spis {
@@ -35,7 +36,8 @@ struct spis {
 enum Errors {
     NO_ERRORS    = 0,
     INSERT_ERROR = 1,
-    DELETE_ERROR = 2
+    DELETE_ERROR = 2,
+    CONNECT_ERROR = 3
 };
 
 void list_ctor (struct spis* myList);
@@ -58,7 +60,11 @@ void list_dump (const struct spis*  myList);
 
 int list_сheck (struct spis* myList);
 
-void mdDo (struct spis* myList);
+char* inttoa(int n, char* s);
+
+void reverse(char* s);
+
+void graph_dump (struct spis* myList);
 
 void list_linearization (struct spis* myList);
 

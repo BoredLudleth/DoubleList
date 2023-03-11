@@ -111,7 +111,7 @@ int main () {
                 break;
 
             case 10:
-                mdDo (&myList);
+                graph_dump (&myList);
                 break;
                 
             case 11:

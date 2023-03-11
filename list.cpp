@@ -1,9 +1,6 @@
 #include "list.hpp"
 
 void list_ctor (struct spis* myList) {
-    FILE* output = fopen ("output.txt","w+");
-    myList->output = output;
-
     myList->list = (struct elem*) calloc (LIST_LENGTH + 1,  sizeof (struct elem));
 
     myList->head = 1;
@@ -41,8 +38,6 @@ void list_dtor (struct spis* myList) {
 
     free (myList->list);
     myList->list = nullptr;
-
-    fclose (myList->output);
 }
 
 void list_insert_before (struct spis* myList, type value, int index) {
@@ -239,6 +234,9 @@ void list_dump (const struct spis*  myList) {
         case DELETE_ERROR:
             printf ("DELETE PROBLEM\n");
             break;
+        case CONNECT_ERROR:
+            printf ("LIST CONNECTION PROBLEM\n");
+            break;
         default:
             printf ("LIST DEFENDER WAS HAHAcked\n");
             break;
@@ -251,7 +249,10 @@ void list_dump (const struct spis*  myList) {
 
     printf ("    № data  prev next\n");
 
-    for (int i = 0; i < LIST_LENGTH + 1; i++) {
+    printf ("SPEC%d ", 0);
+    printf (TYPE_SPECIFICATOR_FIVE, myList->list[0].data);
+    printf (" head%4d tail%4d\n", myList->list[0].prev, myList->list[0].next);
+    for (int i = 1; i < LIST_LENGTH + 1; i++) {
         printf ("%5d ", i);
         printf (TYPE_SPECIFICATOR_FIVE, myList->list[i].data);
         printf ("%4d %4d\n", myList->list[i].prev, myList->list[i].next);
@@ -271,6 +272,29 @@ void list_dump (const struct spis*  myList) {
 }
 
 int list_сheck (struct spis* myList) {
+    if (myList->length == 0) {
+        return 0;
+    }
+    int lr_counter = 0;
+
+    for (int current = myList->head; current != 0; current = myList->list[current].next) {
+        if (current != 0) {
+            lr_counter++;
+        }
+    }
+
+    int rl_counter = 0;
+    
+    for (int current = myList->tail; current != 0; current = myList->list[current].prev) {
+        if (current != 0) {
+            rl_counter++;
+        }
+    }
+
+    if (lr_counter != myList->length || rl_counter != myList->length) {
+        myList->errors = CONNECT_ERROR;
+    }
+
     if (myList->errors != 0) {
         list_dump (myList);
         return 1;
@@ -279,7 +303,54 @@ int list_сheck (struct spis* myList) {
     }
 }
 
-void mdDo (struct spis* myList) {
+char* inttoa(int n, char* s) {
+    int i = 0;
+    int sign = 0;
+ 
+    if ((sign = n) < 0)
+        n = -n;
+    i = 0;
+    do {
+        s[i++] = n % 10 + '0';
+    } while ((n /= 10) > 0);    
+    if (sign < 0)
+        s[i++] = '-';
+    s[i] = '\0';
+    reverse(s);
+
+    return s;
+}
+
+void reverse(char* s) {
+    int i = 0, j = 0;
+    char c = ' ';
+
+    for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
+        c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+    }
+}
+
+void graph_dump (struct spis* myList) {
+    static int num = 0;
+    char name_of_file[15] = "image";
+    char im_num[5] = {};
+    strcat (name_of_file, inttoa(num, im_num));
+    strcat (name_of_file, ".txt\0");
+
+    char pic_name[15] = "image";
+    strcat (pic_name, im_num);
+    strcat (pic_name, ".png\0");
+
+    num++;
+
+    FILE* output = fopen (name_of_file,"w+");
+    myList->output = output;
+    if  (myList->output == nullptr) {
+        printf ("File didn't open\n");
+    }
+
     fprintf (myList->output, "digraph D \n{\n");
     fprintf (myList->output, "node [shape=record fontname=Arial];\n");
     fprintf (myList->output, "rankdir = HR;\n");
@@ -302,6 +373,15 @@ void mdDo (struct spis* myList) {
     }
 
     fprintf (myList->output, "}\n");
+    fclose (myList->output);
+    myList->output = nullptr;
+
+    char command[40] = "dot ";
+    strcat (command, name_of_file);
+    strcat (command, " -Tpng -o ");
+    strcat (command, pic_name);
+
+    system(command);
 }
 
 void list_linearization (struct spis* myList) {
