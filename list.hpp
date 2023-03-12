@@ -19,7 +19,7 @@ struct elem {
     int next  = 0;
 };
 
-struct spis {
+struct List {
     struct elem* list;
 
     FILE* output;
@@ -31,6 +31,7 @@ struct spis {
     int free;
 
     int errors;
+    int flag_linear;
 };
 
 enum Errors {
@@ -40,33 +41,41 @@ enum Errors {
     CONNECT_ERROR = 3
 };
 
-void list_ctor (struct spis* myList);
+void list_ctor (struct List* myList);
 
-void list_dtor (struct spis* myList);
+void list_dtor (struct List* myList);
 
-struct elem* list_log_in_phys (struct spis* myList, type index);
+int list_log_in_phys (struct List* myList, int index);
 
-int list_phys_in_log (struct spis* myList, struct elem* Element);
+int list_phys_in_log (struct List* myList, int index);
 
-void list_insert_before (struct spis* myList, type value, int index);
+void list_first (struct List* myList, type value);
 
-void list_insert_after (struct spis* myList, type value, int index);
+void list_last (struct List* myList, type value);
 
-int list_search (struct spis* myList, type value);
+void list_insert_before (struct List* myList, type value, int index);
 
-int list_delete (struct spis* myList, type index);
+void list_insert_after (struct List* myList, type value, int index);
 
-void list_dump (const struct spis*  myList);
+int list_search (struct List* myList, type value);
 
-int list_сheck (struct spis* myList);
+int list_delete (struct List* myList, type index);
+
+int list_delete_first (struct List* myList);
+
+int list_delete_last (struct List* myList);
+
+void list_dump (const struct List*  myList);
+
+int list_check (struct List* myList);
 
 char* inttoa(int n, char* s);
 
 void reverse(char* s);
 
-void graph_dump (struct spis* myList);
+void graph_dump (struct List* myList);
 
-void list_linearization (struct spis* myList);
+void list_linearization (struct List* myList);
 
 int scanf_check (int x);
 

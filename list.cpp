@@ -1,6 +1,6 @@
 #include "list.hpp"
 
-void list_ctor (struct spis* myList) {
+void list_ctor (struct List* myList) {
     myList->list = (struct elem*) calloc (LIST_LENGTH + 1,  sizeof (struct elem));
 
     myList->head = 1;
@@ -22,10 +22,10 @@ void list_ctor (struct spis* myList) {
     
     myList->list[LIST_LENGTH - 1].next = 0;
 
-    list_сheck (myList);
+    list_check (myList);
 }
 
-void list_dtor (struct spis* myList) {
+void list_dtor (struct List* myList) {
     myList->head = 0;
     myList->tail = 0;
     myList->free = 0;
@@ -39,8 +39,9 @@ void list_dtor (struct spis* myList) {
     free (myList->list);
     myList->list = nullptr;
 }
+//отоброжать пустые и служебный
 
-void list_insert_before (struct spis* myList, type value, int index) {
+void list_insert_before (struct List* myList, type value, int index) {
     if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
@@ -48,7 +49,7 @@ void list_insert_before (struct spis* myList, type value, int index) {
         return;
     }
     
-    list_сheck (myList);
+    list_check (myList);
 
     if (myList->length == 0) {
         int insertBlock = -myList->free;
@@ -84,17 +85,25 @@ void list_insert_before (struct spis* myList, type value, int index) {
 
     myList->length++;
 
-    list_сheck (myList);
+    list_check (myList);
 }
 
-void list_insert_after (struct spis* myList, type value, int index) {
+void list_first (struct List* myList, type value) {
+    list_insert_before (myList, value, list_log_in_phys(myList, myList->head));
+}//TEST_ME
+
+void list_last (struct List* myList, type value) {
+    list_insert_after (myList, value, list_log_in_phys(myList, myList->tail));
+}//TEST_ME
+
+void list_insert_after (struct List* myList, type value, int index) {
     if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
         return;
     }
 
-    list_сheck (myList);
+    list_check (myList);
 
     if (myList->length == 0) {
         int insertBlock = -myList->free;
@@ -130,11 +139,10 @@ void list_insert_after (struct spis* myList, type value, int index) {
 
     myList->length++;
 
-    list_сheck (myList);
+    list_check (myList);
 }
-//insert before next or tail - don't fixes, something strange and unreadable in code
 
-int list_search (struct spis* myList, type value) {
+int list_search (struct List* myList, type value) {
     int current = myList->head;
     if (myList->length != 0) {
         while (current > 0) {
@@ -148,45 +156,50 @@ int list_search (struct spis* myList, type value) {
     return -1;
 }
 
-struct elem* list_log_in_phys (struct spis* myList, type index) {
-    if (index == 0) {
-        return 0;
-    }
-    return &(myList->list[index]);
-}
-
-int list_phys_in_log (struct spis* myList, struct elem* Element) {
+int list_log_in_phys (struct List* myList, type index) {
     int current = myList->head;
+    for (int i = 1; i < index; i++, current = myList->list[current].next) {}
 
-    if (myList->length == 0) {
-        printf ("No such element in list\n");
-
-        return -1;
+    for (int i = 0; i < LIST_LENGTH + 1; i++) {
+        if (myList->list[current].data == myList->list[i].data && myList->list[current].prev == myList->list[i].prev) {
+            return i;
+        }        
     }
 
-    while (current != 0) {
-        if (&(myList->list[current]) == Element) {
-            return current;
-
-            break;
-        } else {
-            current = myList->list[current].next;
-        }
-    }
-
-    printf ("No such element in list\n");
-
+    printf ("No element with such adress\n");
     return -1;
 }
 
-int  list_delete (struct spis* myList, type index) {
+int list_phys_in_log (struct List* myList, int index) {
+    for (int current = myList->head, j = 0; current != 0; current = myList->list[current].next) {
+        j++;
+        if (myList->list[index].data == myList->list[current].data && myList->list[index].prev == myList->list[current].prev) {
+            return j;
+        }
+    }
+
+    printf ("No element with such adress\n");
+    return -1;
+}
+
+int list_delete_first (struct List* myList) {
+    int result = list_delete (myList, list_log_in_phys(myList, 1));
+    return result;
+}//TEST_ME
+
+int list_delete_last (struct List* myList) {
+    int result = list_delete (myList, list_log_in_phys(myList, myList->length));
+    return result;
+}//TEST_ME
+
+int  list_delete (struct List* myList, type index) {
     if (myList->list[index].data == POISON) {
         printf("You can't delete unexisting thing(\n");
         myList->errors = DELETE_ERROR;
         return 0;
     }
 
-    list_сheck (myList);
+    list_check (myList);
 
     int delValue = myList->list[index].data;
 
@@ -213,13 +226,13 @@ int  list_delete (struct spis* myList, type index) {
 
     printf ("DELETED VALUE: %d\n", delValue);
 
-    list_сheck (myList);
+    list_check (myList);
 
     return 1;
 
 }
 
-void list_dump (const struct spis*  myList) {
+void list_dump (const struct List*  myList) {
     printf ("==========LIST_DUMP==========\n");
 
     printf ("ERRORS: %d\n", myList->errors);
@@ -271,8 +284,8 @@ void list_dump (const struct spis*  myList) {
     printf ("end\n=============================\n");
 }
 
-int list_сheck (struct spis* myList) {
-    if (myList->length == 0) {
+int list_check (struct List* myList) {
+    if (myList->length <= 1) {
         return 0;
     }
     int lr_counter = 0;
@@ -280,6 +293,18 @@ int list_сheck (struct spis* myList) {
     for (int current = myList->head; current != 0; current = myList->list[current].next) {
         if (current != 0) {
             lr_counter++;
+        }
+    }
+
+    for (int current = myList->head; current != 0; current = myList->list[current].next) {
+        if (current != myList->tail && myList->list[current].data != myList->list[myList->list[myList->list[current].next].prev].data) {
+            myList->errors = CONNECT_ERROR;
+            break;
+        }
+
+        if (current != myList->head && myList->list[myList->list[myList->list[current].prev].next].data != myList->list[current].data) {
+            myList->errors = CONNECT_ERROR;
+            break;
         }
     }
 
@@ -332,7 +357,7 @@ void reverse(char* s) {
     }
 }
 
-void graph_dump (struct spis* myList) {
+void graph_dump (struct List* myList) {
     static int num = 0;
     char name_of_file[15] = "image";
     char im_num[5] = {};
@@ -359,7 +384,7 @@ void graph_dump (struct spis* myList) {
         if (myList->list[i].next < 0 || myList->list[i].data == POISON) {
             continue;
         }
-        fprintf (myList->output, "node%d [label = \"<f0>value = %d |{prev = %p|<f1> addr = %p|<f2> next %p}\", style = filled, fillcolor = \"#d0ffff\"];\n",  i, myList->list[i].data, 
+        fprintf (myList->output, "node%d [label = \"<f0>value = %d |{prev = %d|<f1> addr = %d|<f2> next %d}\", style = filled, fillcolor = \"#d0ffff\"];\n",  i, myList->list[i].data, 
                  list_log_in_phys(myList, myList->list[i].prev), 
                  list_log_in_phys(myList, i),
                  list_log_in_phys(myList, myList->list[i].next));
@@ -384,7 +409,7 @@ void graph_dump (struct spis* myList) {
     system(command);
 }
 
-void list_linearization (struct spis* myList) {
+void list_linearization (struct List* myList) {
     if (myList->length == 0) {
         return;
     }
@@ -423,6 +448,7 @@ void list_linearization (struct spis* myList) {
     myList->list[0].prev = myList->head;
 
     free (myLittleArrayOfValues);
+    myList->flag_linear = 1;
 }
 
 int scanf_check (int x) {

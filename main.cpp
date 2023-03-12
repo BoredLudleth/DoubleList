@@ -1,13 +1,12 @@
 #include "list.hpp"
 
 int main () {
-    struct spis myList = {};
+    struct List myList = {};
 
     int command = -1;
     type push_value = 0;
     type search_value = 0;
     int index = 0;
-    struct elem* adress = nullptr;
 
     list_ctor (&myList); 
                 printf ("henlo, it's menu for list\n");
@@ -95,14 +94,14 @@ int main () {
                     break;
                 }
 
-                printf ("%p\n", list_log_in_phys (&myList, index));
+                printf ("%d\n", list_log_in_phys (&myList, index));
                 break;
 
             case 8:
-                if (!scanf_check (scanf ("%p", &adress))) {
+                if (!scanf_check (scanf ("%d", &index))) {
                     break;
                 }
-                printf ("%d\n", list_phys_in_log (&myList, adress));
+                printf ("%d\n", list_phys_in_log (&myList, index));
                 break;
 
             case 9:
@@ -125,7 +124,7 @@ int main () {
         
         while (!scanf_check(scanf("%d", &command)));
 
-        if (list_сheck (&myList) != 0) {
+        if (list_check (&myList) != 0) {
             list_dtor (&myList);
             break;
         }
