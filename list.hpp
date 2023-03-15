@@ -23,6 +23,7 @@ struct List {
     struct elem* list;
 
     FILE* output;
+    FILE* log;
 
     int head;
     int length;
@@ -30,7 +31,7 @@ struct List {
 
     int free;
 
-    int errors;
+    int errors = 0;
     int flag_linear;
 };
 

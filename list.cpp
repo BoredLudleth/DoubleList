@@ -1,6 +1,11 @@
 #include "list.hpp"
 
 void list_ctor (struct List* myList) {
+    myList->log = fopen ("log-file.html", "w+");
+    fprintf (myList->log, "<pre>\n");
+    fprintf (myList->log, "<h2>Welcome to log file</h2>\n");
+    fprintf (myList->log, "<font color = green>Start listing\n</color><font color = black>");
+
     myList->list = (struct elem*) calloc (LIST_LENGTH + 1,  sizeof (struct elem));
 
     myList->head = 1;
@@ -38,11 +43,13 @@ void list_dtor (struct List* myList) {
 
     free (myList->list);
     myList->list = nullptr;
+    fprintf (myList->log, "</color><font color = red>End of listing\n</color>");
+    fclose (myList->log);
 }
 //отоброжать пустые и служебный
 
 void list_insert_before (struct List* myList, type value, int index) {
-    if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
+    if ((LIST_LENGTH < index) || (index < 0) || (myList->length > LIST_LENGTH) || (myList->free == 0)) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
 
@@ -85,19 +92,25 @@ void list_insert_before (struct List* myList, type value, int index) {
 
     myList->length++;
 
+    fprintf (myList->log, "Value %d insert before physical index (logic index is %d) %d\n", value, index, list_phys_in_log (myList, index));
+
     list_check (myList);
 }
 
 void list_first (struct List* myList, type value) {
     list_insert_before (myList, value, list_log_in_phys(myList, myList->head));
+
+    fprintf (myList->log, "Value %d insert at the head of list\n", value);
 }//TEST_ME
 
 void list_last (struct List* myList, type value) {
     list_insert_after (myList, value, list_log_in_phys(myList, myList->tail));
+
+    fprintf (myList->log, "Value %d insert at the tail of list\n", value);
 }//TEST_ME
 
 void list_insert_after (struct List* myList, type value, int index) {
-    if (LIST_LENGTH < index || index < 0 || myList->length > LIST_LENGTH || myList->free == 0) {
+    if ((LIST_LENGTH < index) || (index < 0) || (myList->length > LIST_LENGTH) || (myList->free == 0)) {
         printf ("We can't add your value\n");
         myList->errors = INSERT_ERROR;
         return;
@@ -138,6 +151,8 @@ void list_insert_after (struct List* myList, type value, int index) {
     myList->list[insertBlock].data = value;
 
     myList->length++;
+
+    fprintf (myList->log, "Value %d insert after physical index (logic index is %d) %d\n", value, index, list_phys_in_log (myList, index));
 
     list_check (myList);
 }
@@ -184,11 +199,17 @@ int list_phys_in_log (struct List* myList, int index) {
 
 int list_delete_first (struct List* myList) {
     int result = list_delete (myList, list_log_in_phys(myList, 1));
+
+    fprintf (myList->log, "The first value %d in list was deleted\n", result);
+
     return result;
 }//TEST_ME
 
 int list_delete_last (struct List* myList) {
     int result = list_delete (myList, list_log_in_phys(myList, myList->length));
+
+    fprintf (myList->log, "The first value %d in list was deleted\n", result);
+
     return result;
 }//TEST_ME
 
@@ -226,6 +247,8 @@ int  list_delete (struct List* myList, type index) {
 
     printf ("DELETED VALUE: %d\n", delValue);
 
+    fprintf (myList->log, "Value %d with physical index (logic index is %d) %d was deleted\n", delValue, index, list_phys_in_log (myList, index));
+
     list_check (myList);
 
     return 1;
@@ -233,25 +256,38 @@ int  list_delete (struct List* myList, type index) {
 }
 
 void list_dump (const struct List*  myList) {
+    fprintf (myList->log, "Called text dump\n");
+
     printf ("==========LIST_DUMP==========\n");
+    fprintf (myList->log, "==========LIST_DUMP==========\n");
 
     printf ("ERRORS: %d\n", myList->errors);
+    fprintf (myList->log, "ERRORS: %d\n", myList->errors);
 
     switch (myList->errors) {
         case NO_ERRORS:
             printf ("NO PROBLEMS\n");
+            fprintf (myList->log, "NO PROBLEMS\n");
             break;
+
         case INSERT_ERROR:
             printf ("INSERT ERROR\n");
+            fprintf (myList->log, "INSERT ERROR\n");
             break;
+
         case DELETE_ERROR:
             printf ("DELETE PROBLEM\n");
+            fprintf (myList->log, "DELETE PROBLEM\n");
             break;
+
         case CONNECT_ERROR:
             printf ("LIST CONNECTION PROBLEM\n");
+            fprintf (myList->log, "LIST CONNECTION PROBLEM\n");
             break;
+
         default:
             printf ("LIST DEFENDER WAS HAHAcked\n");
+            fprintf (myList->log, "LIST DEFENDER WAS HAHAcked\n");
             break;
     };
 
@@ -260,28 +296,50 @@ void list_dump (const struct List*  myList) {
     printf ("tail: %d\n", myList->tail);
     printf ("free: %d\n", myList->free);
 
+    fprintf (myList->log, "length: %d\n", myList->length);
+    fprintf (myList->log, "head: %d\n", myList->head);
+    fprintf (myList->log, "tail: %d\n", myList->tail);
+    fprintf (myList->log, "free: %d\n", myList->free);
+
+
     printf ("    № data  prev next\n");
+    fprintf (myList->log, "    № data  prev next\n");
 
     printf ("SPEC%d ", 0);
     printf (TYPE_SPECIFICATOR_FIVE, myList->list[0].data);
     printf (" head%4d tail%4d\n", myList->list[0].prev, myList->list[0].next);
+
+    fprintf (myList->log, "SPEC%d ", 0);
+    fprintf (myList->log, TYPE_SPECIFICATOR_FIVE, myList->list[0].data);
+    fprintf (myList->log, " head%4d tail%4d\n", myList->list[0].prev, myList->list[0].next);
+
     for (int i = 1; i < LIST_LENGTH + 1; i++) {
         printf ("%5d ", i);
         printf (TYPE_SPECIFICATOR_FIVE, myList->list[i].data);
         printf ("%4d %4d\n", myList->list[i].prev, myList->list[i].next);
+
+        fprintf (myList->log, "%5d ", i);
+        fprintf (myList->log, TYPE_SPECIFICATOR_FIVE, myList->list[i].data);
+        fprintf (myList->log, "%4d %4d\n", myList->list[i].prev, myList->list[i].next);        
     }
 
     printf ("HUMAN VIEW\n");
+    fprintf (myList->log, "HUMAN VIEW\n");
 
     int current = myList->head;
 
     while (current != 0 && myList->length != 0) {
         printf (TYPE_SPECIFICATOR, myList->list[current].data);
         printf (" <-> ");
+
+        fprintf (myList->log, TYPE_SPECIFICATOR, myList->list[current].data);
+        fprintf (myList->log, " <-> ");
+
         current = myList->list[current].next;
     }
 
     printf ("end\n=============================\n");
+    fprintf (myList->log, "end\n=============================\n");
 }
 
 int list_check (struct List* myList) {
@@ -359,7 +417,7 @@ void reverse(char* s) {
 
 void graph_dump (struct List* myList) {
     static int num = 0;
-    char name_of_file[15] = "image";
+    char name_of_file[15] = "txt/image";
     char im_num[5] = {};
     strcat (name_of_file, inttoa(num, im_num));
     strcat (name_of_file, ".txt\0");
@@ -376,26 +434,43 @@ void graph_dump (struct List* myList) {
         printf ("File didn't open\n");
     }
 
-    fprintf (myList->output, "digraph D \n{\n");
+    fprintf (myList->output, "digraph D\n{\n");
     fprintf (myList->output, "node [shape=record fontname=Arial];\n");
-    fprintf (myList->output, "rankdir = HR;\n");
+    fprintf (myList->output, "rankdir = L;\n");
+    fprintf (myList->output, "splines = \"ortho\"\n");
+    
 
-    for (int i = 0; i < LIST_LENGTH; i++) {
-        if (myList->list[i].next < 0 || myList->list[i].data == POISON) {
-            continue;
-        }
+    fprintf (myList->output, "node0 [label = \"<f0>value = %d |{head = %d|<f1> addr = 0|tail %d}\", style = filled, fillcolor = \"#d0fccf\"];\n", myList->list[0].data, 
+                 myList->list[0].prev, 
+                 myList->list[0].next);
+
+    for (int i = 1; i < LIST_LENGTH; i++) {
         fprintf (myList->output, "node%d [label = \"<f0>value = %d |{prev = %d|<f1> addr = %d|<f2> next %d}\", style = filled, fillcolor = \"#d0ffff\"];\n",  i, myList->list[i].data, 
-                 list_log_in_phys(myList, myList->list[i].prev), 
-                 list_log_in_phys(myList, i),
-                 list_log_in_phys(myList, myList->list[i].next));
+                 myList->list[i].prev, 
+                 i,
+                 myList->list[i].next);
     }
+
+
+    // for (int i = 0; i < LIST_LENGTH; i++) {
+    //     if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
+    //         continue;
+    //     }
+    //     fprintf (myList->output, "node%d -> node%d:<next_in> [style = \"invis\",constraint = true, dir=both, color = \"#00D000\"];\n", i, i + 1);
+    // }
 
     for (int i = 0; i < LIST_LENGTH; i++) {
         if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
             continue;
         }
-        fprintf (myList->output, "node%d -> node%d [dir=both, color = \"#00D000\"];\n", i, myList->list[i].next);
+        fprintf (myList->output, "node%d -> node%d [dir=both, constraint = false, color = darkred];\n", i, myList->list[i].next);
     }
+
+    fprintf (myList->output, "head [label = \"HEAD\", style = filled, fillcolor = \"#d01234\"];\n");
+    fprintf (myList->output, "tail [label = \"TAIL\", style = filled, fillcolor = \"#d01234\"];\n");
+
+    fprintf (myList->output, "node%d -> head [constraint = true, dir=both, color = \"#00D000\"];\n", myList->head);
+    fprintf (myList->output, "node%d -> tail [constraint = true, dir=both, color = \"#00D000\"];\n", myList->tail);
 
     fprintf (myList->output, "}\n");
     fclose (myList->output);
@@ -404,9 +479,13 @@ void graph_dump (struct List* myList) {
     char command[40] = "dot ";
     strcat (command, name_of_file);
     strcat (command, " -Tpng -o ");
+    strcat (command,"img/");
     strcat (command, pic_name);
 
     system(command);
+
+    fprintf (myList->log, "Call Graphviz dump\n");
+    fprintf (myList->log, "<img src = img/%s width 40%/>\n", pic_name);
 }
 
 void list_linearization (struct List* myList) {
@@ -449,7 +528,9 @@ void list_linearization (struct List* myList) {
 
     free (myLittleArrayOfValues);
     myList->flag_linear = 1;
-}
+    
+    fprintf (myList->log, "Called linearization of list\n");
+}//доделать идею с флагом линеаризации
 
 int scanf_check (int x) {
     if (x == 0) {

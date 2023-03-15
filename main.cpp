@@ -9,18 +9,23 @@ int main () {
     int index = 0;
 
     list_ctor (&myList); 
-                printf ("henlo, it's menu for list\n");
-                printf ("1 num index - push before\n");
-                printf ("2 num index - push after\n");
-                printf ("3 - list search\n");
-                printf ("4 - list delete\n");
-                printf ("5 - list dump\n");
-                printf ("6 - menu\n");
-                printf ("7 index - logical adress to physical\n");
-                printf ("8 adress - physical adress to logical\n");
-                printf ("9 - quit\n");
-                printf ("10 - graphviz\n");
-                printf ("11 - linearization\n");
+
+    printf ("henlo, it's menu for list\n");
+    printf ("1 num index - push before, enter first you must use 2 num 0\n");
+    printf ("2 num index - push after\n");
+    printf ("3 - list search\n");
+    printf ("4 - list delete\n");
+    printf ("5 - list dump\n");
+    printf ("6 - menu\n");
+    printf ("7 index - logical adress to physical\n");
+    printf ("8 adress - physical adress to logical\n");
+    printf ("9 - quit\n");
+    printf ("10 - graphviz\n");
+    printf ("11 - linearization\n");
+    printf ("12 value - push first\n");
+    printf ("13 value - push last\n");
+    printf ("14 - delete first\n");
+    printf ("15 - delete last\n");
 
     while (!scanf_check(scanf("%d", &command)));
 
@@ -87,6 +92,10 @@ int main () {
                 printf ("9 - quit\n");
                 printf ("10 - graphviz\n");
                 printf ("11 - linearization\n");
+                printf ("12 value - push first\n");
+                printf ("13 value - push last\n");
+                printf ("14 - delete first\n");
+                printf ("15 - delete last\n");
                 break;
 
             case 7:
@@ -117,17 +126,41 @@ int main () {
                 list_linearization (&myList);
                 break;
 
+            case 12:
+                if (!scanf_check (scanf (TYPE_SPECIFICATOR, &push_value))) {
+                    break;
+                }
+
+                list_first (&myList, push_value);
+                break;
+
+            case 13:
+                if (!scanf_check (scanf (TYPE_SPECIFICATOR, &push_value))) {
+                    break;
+                }
+
+                list_last (&myList, push_value);
+                break;
+
+            case 14:
+                list_delete_first (&myList);
+                break;
+
+            case 15:
+                list_delete_last (&myList);
+                break;
             default:
                 printf ("Undefined command\n");
                 break;
         }
         
-        while (!scanf_check(scanf("%d", &command)));
-
         if (list_check (&myList) != 0) {
             list_dtor (&myList);
             break;
         }
+        
+        while (!scanf_check(scanf("%d", &command)));
+
     }
 
     return 0;
