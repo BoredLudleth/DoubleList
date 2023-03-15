@@ -31,6 +31,10 @@ void list_ctor (struct List* myList) {
 }
 
 void list_dtor (struct List* myList) {
+    if (myList->errors != 0) {
+        list_dump (myList);
+    }
+
     myList->head = 0;
     myList->tail = 0;
     myList->free = 0;
@@ -44,9 +48,10 @@ void list_dtor (struct List* myList) {
     free (myList->list);
     myList->list = nullptr;
     fprintf (myList->log, "</color><font color = red>End of listing\n</color>");
+    fprintf (myList->log, "<center><img align=\"middle\" src=\"img/image.jpg\" width=\"202\" height=\"270\">\n");
+    fprintf (myList->log, "<font color = blue>Спасибо Полторашке за этот прекрасный листинг!\n<font color = blue></center>");
     fclose (myList->log);
 }
-//отоброжать пустые и служебный
 
 void list_insert_before (struct List* myList, type value, int index) {
     if ((LIST_LENGTH < index) || (index < 0) || (myList->length > LIST_LENGTH) || (myList->free == 0)) {
@@ -73,6 +78,10 @@ void list_insert_before (struct List* myList, type value, int index) {
         return;
     }
 
+    if (myList->length == 1) {
+        myList->tail = index;
+    }
+
     int insertBlock = -myList->free;
 
     myList->free = myList->list[-myList->free].next;
@@ -93,8 +102,10 @@ void list_insert_before (struct List* myList, type value, int index) {
     myList->length++;
 
     fprintf (myList->log, "Value %d insert before physical index (logic index is %d) %d\n", value, index, list_phys_in_log (myList, index));
+    myList->flag_linear = 0;
 
     list_check (myList);
+    
 }
 
 void list_first (struct List* myList, type value) {
@@ -116,6 +127,10 @@ void list_insert_after (struct List* myList, type value, int index) {
         return;
     }
 
+    if (myList->tail != myList->length && myList->flag_linear == 1) {
+        myList->flag_linear = 0;
+    }
+
     list_check (myList);
 
     if (myList->length == 0) {
@@ -131,6 +146,10 @@ void list_insert_after (struct List* myList, type value, int index) {
         myList->length++;
 
         return;
+    }
+
+    if (myList->length == 1) {
+        myList->head = index;
     }
 
     int insertBlock = -myList->free;
@@ -172,6 +191,10 @@ int list_search (struct List* myList, type value) {
 }
 
 int list_log_in_phys (struct List* myList, type index) {
+    if (myList->flag_linear == 1) {
+        return index;
+    }
+
     int current = myList->head;
     for (int i = 1; i < index; i++, current = myList->list[current].next) {}
 
@@ -186,6 +209,10 @@ int list_log_in_phys (struct List* myList, type index) {
 }
 
 int list_phys_in_log (struct List* myList, int index) {
+    if (myList->flag_linear == 1) {
+        return index;
+    }
+
     for (int current = myList->head, j = 0; current != 0; current = myList->list[current].next) {
         j++;
         if (myList->list[index].data == myList->list[current].data && myList->list[index].prev == myList->list[current].prev) {
@@ -201,9 +228,10 @@ int list_delete_first (struct List* myList) {
     int result = list_delete (myList, list_log_in_phys(myList, 1));
 
     fprintf (myList->log, "The first value %d in list was deleted\n", result);
+    myList->flag_linear = 0;
 
     return result;
-}//TEST_ME
+}
 
 int list_delete_last (struct List* myList) {
     int result = list_delete (myList, list_log_in_phys(myList, myList->length));
@@ -211,13 +239,17 @@ int list_delete_last (struct List* myList) {
     fprintf (myList->log, "The first value %d in list was deleted\n", result);
 
     return result;
-}//TEST_ME
+}
 
 int  list_delete (struct List* myList, type index) {
     if (myList->list[index].data == POISON) {
         printf("You can't delete unexisting thing(\n");
         myList->errors = DELETE_ERROR;
         return 0;
+    }
+
+    if (myList->length != myList->tail || index != myList->tail) {
+        myList->flag_linear = 0;
     }
 
     list_check (myList);
@@ -247,7 +279,7 @@ int  list_delete (struct List* myList, type index) {
 
     printf ("DELETED VALUE: %d\n", delValue);
 
-    fprintf (myList->log, "Value %d with physical index (logic index is %d) %d was deleted\n", delValue, index, list_phys_in_log (myList, index));
+    fprintf (myList->log, "Value %d with physical index is %d was deleted\n", delValue, index);
 
     list_check (myList);
 
@@ -346,6 +378,7 @@ int list_check (struct List* myList) {
     if (myList->length <= 1) {
         return 0;
     }
+
     int lr_counter = 0;
 
     for (int current = myList->head; current != 0; current = myList->list[current].next) {
@@ -378,12 +411,7 @@ int list_check (struct List* myList) {
         myList->errors = CONNECT_ERROR;
     }
 
-    if (myList->errors != 0) {
-        list_dump (myList);
-        return 1;
-    } else {
-        return 0;
-    }
+    return myList->errors;
 }
 
 char* inttoa(int n, char* s) {
@@ -440,7 +468,7 @@ void graph_dump (struct List* myList) {
     fprintf (myList->output, "splines = \"ortho\"\n");
     
 
-    fprintf (myList->output, "node0 [label = \"<f0>value = %d |{head = %d|<f1> addr = 0|tail %d}\", style = filled, fillcolor = \"#d0fccf\"];\n", myList->list[0].data, 
+    fprintf (myList->output, "node0 [label = \"<f0>length = %d |{head = %d|<f1> addr = 0|tail %d}\", style = filled, fillcolor = \"#d0fccf\"];\n", myList->length, 
                  myList->list[0].prev, 
                  myList->list[0].next);
 
@@ -450,14 +478,6 @@ void graph_dump (struct List* myList) {
                  i,
                  myList->list[i].next);
     }
-
-
-    // for (int i = 0; i < LIST_LENGTH; i++) {
-    //     if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
-    //         continue;
-    //     }
-    //     fprintf (myList->output, "node%d -> node%d:<next_in> [style = \"invis\",constraint = true, dir=both, color = \"#00D000\"];\n", i, i + 1);
-    // }
 
     for (int i = 0; i < LIST_LENGTH; i++) {
         if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
@@ -530,7 +550,7 @@ void list_linearization (struct List* myList) {
     myList->flag_linear = 1;
     
     fprintf (myList->log, "Called linearization of list\n");
-}//доделать идею с флагом линеаризации
+}
 
 int scanf_check (int x) {
     if (x == 0) {

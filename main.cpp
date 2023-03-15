@@ -154,11 +154,11 @@ int main () {
                 break;
         }
         
-        if (list_check (&myList) != 0) {
+        if (list_check (&myList) > 0) {
             list_dtor (&myList);
             break;
         }
-        
+
         while (!scanf_check(scanf("%d", &command)));
 
     }
