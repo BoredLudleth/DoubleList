@@ -464,31 +464,40 @@ void graph_dump (struct List* myList) {
 
     fprintf (myList->output, "digraph D\n{\n");
     fprintf (myList->output, "node [shape=record fontname=Arial];\n");
-    fprintf (myList->output, "rankdir = L;\n");
+    fprintf (myList->output, "edge [dir=both, style=\"\", constraint=false, color = darkred]");
+    fprintf (myList->output, "rankdir = LR;\n");
     fprintf (myList->output, "splines = \"ortho\"\n");
     
+    fprintf (myList->output, "head [label = \"HEAD\", style = filled, fillcolor = \"#d01234\"];\n");
+    fprintf (myList->output, "tail [label = \"TAIL\", style = filled, fillcolor = \"#d01234\"];\n");
 
-    fprintf (myList->output, "node0 [label = \"<f0>length = %d |{head = %d|<f1> addr = 0|tail %d}\", style = filled, fillcolor = \"#d0fccf\"];\n", myList->length, 
+    fprintf (myList->output, "node0[label = \"{length = %d}| {<f1> head = %d}| {<f2> addr = 0}| {<f3> tail = %d}\", shape=record, style = filled, fillcolor = \"#d0fccf\"];\n", myList->length, 
                  myList->list[0].prev, 
                  myList->list[0].next);
 
     for (int i = 1; i < LIST_LENGTH; i++) {
-        fprintf (myList->output, "node%d [label = \"<f0>value = %d |{prev = %d|<f1> addr = %d|<f2> next %d}\", style = filled, fillcolor = \"#d0ffff\"];\n",  i, myList->list[i].data, 
+    fprintf (myList->output, "node%d [label = \"{<f0> value = %d}| {<f1> prev = %d}| {<f2> addr = %d}| {<f3> next = %d}\", shape=record, style = filled, fillcolor = \"#d0ffff\"];\n",  i, myList->list[i].data, 
                  myList->list[i].prev, 
                  i,
                  myList->list[i].next);
+    fprintf (myList->output, "node%d:f1 -> node%d:f1[dir=both, style=invis, constraint=true];\n", i - 1, i);
     }
+    
+    // for (int i = 0; i < LIST_LENGTH; i++) {
+    //     if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
+    //         continue;
+    //     }
+    //     fprintf (myList->output, "node%d:f2 -> node%d:f2[dir=both, style=invis, constraint=true];\n", i, i + 1);
+    //     fprintf (myList->output, "node%d:f2 -> node%d:f2[dir=both, style=invis, constraint=true];\n", i + 1, i);
+    // }
 
-    for (int i = 0; i < LIST_LENGTH; i++) {
+    for (int i = 1; i < LIST_LENGTH; i++) {
         if (myList->list[i].data == POISON || myList->list[i].next ==  0) {
             continue;
         }
-        fprintf (myList->output, "node%d -> node%d [dir=both, constraint = false, color = darkred];\n", i, myList->list[i].next);
+        fprintf (myList->output, "node%d -> node%d;\n", i, myList->list[i].next);
     }
-
-    fprintf (myList->output, "head [label = \"HEAD\", style = filled, fillcolor = \"#d01234\"];\n");
-    fprintf (myList->output, "tail [label = \"TAIL\", style = filled, fillcolor = \"#d01234\"];\n");
-
+    fprintf (myList->output, "tail -> head [style=invis, constraint = true, dir=both, color = \"#00D000\"];\n");
     fprintf (myList->output, "node%d -> head [constraint = true, dir=both, color = \"#00D000\"];\n", myList->head);
     fprintf (myList->output, "node%d -> tail [constraint = true, dir=both, color = \"#00D000\"];\n", myList->tail);
 
